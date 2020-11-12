@@ -163,6 +163,42 @@ def retrieve_password(email: str):
         return jsonify(message="That email does not exist."), 401
 
 
+@app.route('/planet_details/<int:planet_id>', methods=["GET"])
+def planet_details(planet_id: int):
+    planet = Planet.query.filter_by(planet_id=planet_id).first()
+    if planet:
+        result = planet_schema.dump(planet)
+        return jsonify(result)
+    else:
+        return jsonify(message="That planet does not exist."), 404
+
+
+@app.route('/add_planet', methods=["POST"])
+@jwt_required
+def add_planet():
+    planet_name = request.form['planet_name']
+    test = Planet.query.filter_by(planet_name=planet_name).first()
+    if test:
+        return jsonify("There is already a planet by that name"), 409
+    else:
+        planet_type = request.form['planet_type']
+        home_star = request.form['home_star']
+        radius = float(request.form['radius'])
+        mass = float(request.form['mass'])
+        distance = float(request.form['distance'])
+
+        new_planet = Planet(planet_type=planet_name,
+                            planet_name=planet_name,
+                            mass=mass,
+                            radius=radius,
+                            home_star=home_star,
+                            distance=distance)
+
+        db.session.add(new_planet)
+        db.session.commit()
+        return jsonify(message="your added a planet"), 201
+
+
 # database models
 # specify to use db.model lib to create this class
 class User(db.Model):
